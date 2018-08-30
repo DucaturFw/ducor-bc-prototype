@@ -1,17 +1,17 @@
-type TBytes = string
-type TPublicKey = string
-type TPrivateKey = string
-type TSignature = string
-type THash = string
+export type TBytes = string
+export type TPublicKey = string
+export type TPrivateKey = string
+export type TSignature = string
+export type THash = string
 
-interface ITx
+export interface ITx
 {
 	from: TPublicKey
 	data: TBytes
 	hash: THash
 	sig: TSignature
 }
-interface IBlock
+export interface IBlock
 {
 	prevHash: THash
 	hash: THash
@@ -19,7 +19,7 @@ interface IBlock
 	txs: ITx[]
 	producer: TPublicKey
 }
-interface IBlockchain
+export interface IBlockchain
 {
 	blocks: IBlock[]
 	mempool: ITx[]
@@ -28,20 +28,20 @@ interface IBlockchain
 	BLOCK_PRODUCERS_CONSEQUENT_BLOCKS: number
 }
 
-function getHash(data: TBytes): THash
+export function getHash(data: TBytes): THash
 {
 	return data.split('').map(c => c.charCodeAt(0)).reduce((a, b) => a + b, 0).toString()
 }
-function checkHash(data: TBytes, hash: THash): boolean
+export function checkHash(data: TBytes, hash: THash): boolean
 {
 	return hash == getHash(data)
 }
-function checkSig(data: TBytes, from: TPublicKey, sig: TSignature): boolean
+export function checkSig(data: TBytes, from: TPublicKey, sig: TSignature): boolean
 {
 	let sig2 = getHash(getHash(data) + getHash(from))
 	return sig == sig2
 }
-function checkTx(tx: ITx): [false, string] | [true, never?]
+export function checkTx(tx: ITx): [false, string] | [true, never?]
 {
 	if (!checkHash(tx.data, tx.hash))
 		return [false, "incorrect hash"]
@@ -51,7 +51,7 @@ function checkTx(tx: ITx): [false, string] | [true, never?]
 	
 	return [true]
 }
-function pushTx(b: IBlockchain, tx: ITx)
+export function pushTx(b: IBlockchain, tx: ITx)
 {
 	let [txres, txerrmsg] = checkTx(tx)
 
@@ -66,7 +66,7 @@ function pushTx(b: IBlockchain, tx: ITx)
 
 	b.mempool.push(tx)
 }
-function addBlock(b: IBlockchain, block: IBlock)
+export function addBlock(b: IBlockchain, block: IBlock)
 {
 	if (block.txs.some(tx => !checkTx(tx)[0]))
 		return "block contains invalid tx"
@@ -88,11 +88,11 @@ function addBlock(b: IBlockchain, block: IBlock)
 	b.knownTxs = { ...b.knownTxs, ...block.txs.reduce((acc, tx) => (acc[tx.hash] = tx, acc), { } as typeof b.knownTxs) }
 	b.mempool = b.mempool.filter(tx => !b.knownTxs[tx.hash])
 }
-function privateToPublic(key: TPrivateKey): TPublicKey
+export function privateToPublic(key: TPrivateKey): TPublicKey
 {
 	return key.split('').map(c => String.fromCharCode(c.charCodeAt(0) + 1)).join('')
 }
-function produceBlock(b: IBlockchain, producer: TPrivateKey): IBlock
+export function produceBlock(b: IBlockchain, producer: TPrivateKey): IBlock
 {
 	let txs = b.mempool.slice()
 	let prevHash = b.blocks.length ? b.blocks[b.blocks.length - 1].hash : "0"
@@ -106,11 +106,11 @@ function produceBlock(b: IBlockchain, producer: TPrivateKey): IBlock
 		txs,
 	}
 }
-function blockHeight(b: IBlockchain): number
+export function blockHeight(b: IBlockchain): number
 {
 	return b.blocks.length
 }
-function getProducerIndexForBlock(b: IBlockchain, blockNumber?: number): number
+export function getProducerIndexForBlock(b: IBlockchain, blockNumber?: number): number
 {
 	if (typeof blockNumber === "undefined")
 		blockNumber = blockHeight(b)
