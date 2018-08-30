@@ -4,5 +4,10 @@
   "main": "src/app.ts",
   "repository": "https://github.com/DucaturFw/ducorbc",
   "author": "zlumer",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^10.9.3",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.0.3"
+  }
 }
