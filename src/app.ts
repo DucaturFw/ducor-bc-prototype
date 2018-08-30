@@ -1,33 +1,42 @@
+type TBytes = string
+type TPublicKey = string
+type TPrivateKey = string
+type TSignature = string
+type THash = string
+
 interface ITx
 {
-	from: string
-	data: string
-	hash: string
-	sig: string
+	from: TPublicKey
+	data: TBytes
+	hash: THash
+	sig: TSignature
 }
 interface IBlock
 {
-	prevHash: string
-	hash: string
+	prevHash: THash
+	hash: THash
+	index: number
 	txs: ITx[]
-	producer: string
+	producer: TPublicKey
 }
 interface IBlockchain
 {
 	blocks: IBlock[]
 	mempool: ITx[]
 	knownTxs: { [key: string]: ITx }
+	blockProducers: TPublicKey[]
+	BLOCK_PRODUCERS_CONSEQUENT_BLOCKS: number
 }
 
-function getHash(data: string): string
+function getHash(data: TBytes): THash
 {
 	return data.split('').map(c => c.charCodeAt(0)).reduce((a, b) => a + b, 0).toString()
 }
-function checkHash(data: string, hash: string): boolean
+function checkHash(data: TBytes, hash: THash): boolean
 {
 	return hash == getHash(data)
 }
-function checkSig(data: string, from: string, sig: string): boolean
+function checkSig(data: TBytes, from: TPublicKey, sig: TSignature): boolean
 {
 	let sig2 = getHash(getHash(data) + getHash(from))
 	return sig == sig2
@@ -66,6 +75,9 @@ function addBlock(b: IBlockchain, block: IBlock)
 	if (h2 != block.hash)
 		return "invalid block hash"
 	
+	if (block.index != blockHeight(b))
+		return "invalid block index"
+	
 	if (b.blocks.length && (b.blocks[b.blocks.length - 1].hash != block.prevHash))
 		return "invalid prev block hash"
 	
@@ -76,19 +88,32 @@ function addBlock(b: IBlockchain, block: IBlock)
 	b.knownTxs = { ...b.knownTxs, ...block.txs.reduce((acc, tx) => (acc[tx.hash] = tx, acc), { } as typeof b.knownTxs) }
 	b.mempool = b.mempool.filter(tx => !b.knownTxs[tx.hash])
 }
-function produceBlock(b: IBlockchain, producer: string): IBlock
+function privateToPublic(key: TPrivateKey): TPublicKey
+{
+	return key.split('').map(c => String.fromCharCode(c.charCodeAt(0) + 1)).join('')
+}
+function produceBlock(b: IBlockchain, producer: TPrivateKey): IBlock
 {
 	let txs = b.mempool.slice()
 	let prevHash = b.blocks.length ? b.blocks[b.blocks.length - 1].hash : "0"
-	let hash = getHash(producer + prevHash + txs.map(tx => tx.hash).join())
+	let hash = getHash(privateToPublic(producer) + prevHash + txs.map(tx => tx.hash).join())
+	let index = blockHeight(b)
 	return {
+		index,
 		hash,
 		prevHash,
 		producer,
-		txs
+		txs,
 	}
 }
 function blockHeight(b: IBlockchain): number
 {
 	return b.blocks.length
+}
+function getProducerIndexForBlock(b: IBlockchain, blockNumber?: number): number
+{
+	if (typeof blockNumber === "undefined")
+		blockNumber = blockHeight(b)
+	
+	return Math.floor(blockNumber / b.BLOCK_PRODUCERS_CONSEQUENT_BLOCKS) % b.blockProducers.length
 }
