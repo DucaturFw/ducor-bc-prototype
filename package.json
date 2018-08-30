@@ -5,8 +5,12 @@
   "repository": "https://github.com/DucaturFw/ducorbc",
   "author": "zlumer",
   "license": "MIT",
+  "scripts": {
+    "start": "ts-node src/app.ts"
+  },
   "dependencies": {
     "@types/node": "^10.9.3",
+    "lotion": "^0.1.19",
     "ts-node": "^7.0.1",
     "typescript": "^3.0.3"
   }
