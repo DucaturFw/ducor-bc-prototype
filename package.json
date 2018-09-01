@@ -6,7 +6,8 @@
   "author": "zlumer",
   "license": "MIT",
   "scripts": {
-    "start": "ts-node src/app.ts"
+    "start": "ts-node src/app.ts",
+    "tx-test": "ts-node src/test.ts"
   },
   "dependencies": {
     "@types/node": "^10.9.3",
